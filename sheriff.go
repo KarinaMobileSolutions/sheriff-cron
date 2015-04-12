@@ -11,17 +11,32 @@ import (
 	"time"
 )
 
+type Conf struct {
+    Scripts []Script `json:"scripts"`
+    Databases []Database `json:"dbs"`
+}
+
 type Script struct {
-	name      string
-	directory string
-	format    string
-	cmd       string
-	args      []string
+	Name      string `json:"name"`
+	Directory string `json:"directory"`
+	Format    string `json:"format"`
+	Cmd       string `json:"cmd"`
+	Args      []string `json:"args"`
+}
+type Database struct {
+    Name      string `json:"name"`
+    Type      string `json:"type"`
+    Host      string `json:"host"`
+    Port      int    `json:"port"`
+    Username  string `json:"username"`
+    Password  string `json:"password"`
 }
 
 var (
-	scripts []Script
+	config Conf
+    rediscon Database
 )
+
 
 func ErrorHandler(err error) {
 	if err != nil {
@@ -37,41 +52,41 @@ func main() {
 
 	defer RedisClient.Close()
 
-	scripts = append(scripts, Script{name: "Ping", directory: "/home/sasan/Works/Karina/Mobazi/", format: "*/5 * * * * *", cmd: "php5", args: []string{"pingmobazi"}})
-	scripts = append(scripts, Script{name: "Test", directory: "/home/sasan/Works/Karina/Mobazi/", format: "0 * * * * *", cmd: "ls", args: []string{"-l", "-h"}})
-
-	fmt.Println("Adding scripts routines...")
+    ParseScripts()
+    fmt.Println(config.Scripts)
+    fmt.Println(config.Databases)
+	fmt.Println("Adding Scripts routines...")
 
 	var wg sync.WaitGroup
 
 	cr := cron.New()
-	for _, script := range scripts {
+	for _, script := range config.Scripts {
 		wg.Add(1)
 		script := script
-		cr.AddFunc(script.format, func() {
+		cr.AddFunc(script.Format, func() {
 
-			cmd := exec.Command(script.cmd, script.args...)
+			cmd := exec.Command(script.Cmd, script.Args...)
 
-			cmd.Dir = script.directory
+			cmd.Dir = script.Directory
 
 			output, err := cmd.Output()
 
 			if err != nil {
-				fmt.Printf("Error calling %s: %v\n", script.cmd, err)
+				fmt.Printf("Error calling %s: %v\n", script.Cmd, err)
 			} else {
 				output := string(output[:])
 				var value float64
 				value, err := strconv.ParseFloat(output, 64)
 				if err != nil {
-					fmt.Printf("Error parsing value %s: %v\n", script.cmd, err)
+					fmt.Printf("Error parsing value %s: %v\n", script.Cmd, err)
 				} else {
 					t := time.Now().Unix()
-					RedisClient.Cmd("zAdd", "sheriff:"+script.name, float64(t), strconv.FormatInt(t, 10)+":"+strconv.FormatFloat(value, 'f', -1, 64))
+					RedisClient.Cmd("zAdd", "sheriff:"+script.Name, float64(t), strconv.FormatInt(t, 10)+":"+strconv.FormatFloat(value, 'f', -1, 64))
 				}
 			}
 		})
 
-		fmt.Printf("Script %v added\n", script.name)
+		fmt.Printf("Script %v added\n", script.Name)
 	}
 
 	cr.Start()

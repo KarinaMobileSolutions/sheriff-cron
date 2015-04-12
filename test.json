@@ -1,0 +1,33 @@
+{
+  "scripts" : [
+      {
+        "name": "Ping",
+        "directory": "/home/sasan/Works/Karina/Mobazi/",
+        "format": "*/5 * * * * *",
+        "cmd": "php5",
+        "args": [
+          "pingmobazi"
+        ]
+      },
+      {
+        "name": "Test",
+        "directory": "/home/sasan/Works/Karina/Mobazi/",
+        "format": "0 * * * * *",
+        "cmd": "php5",
+        "args": [
+          "-l",
+          "-h"
+        ]
+      }
+  ],
+  "dbs":[
+  {
+  "name":"redis",
+  "type":"tcp",
+  "host":"127.0.0.1",
+  "port": 6379,
+  "username": null,
+  "password": null
+  }
+  ]
+}
