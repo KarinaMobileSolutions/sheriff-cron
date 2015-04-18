@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -49,6 +50,7 @@ func StoreScripts(script Script, RedisClient *redis.Client) {
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "format", script.Format)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "directory", script.Directory)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "cmd", script.Cmd)
+	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "args", strings.Join(script.Args, " "))
 }
 
 func main() {
