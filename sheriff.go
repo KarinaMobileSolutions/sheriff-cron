@@ -18,11 +18,12 @@ type Conf struct {
 }
 
 type Script struct {
-	Name      string   `json:"name"`
-	Directory string   `json:"directory"`
-	Format    string   `json:"format"`
-	Cmd       string   `json:"cmd"`
-	Args      []string `json:"args"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Directory   string   `json:"directory"`
+	Format      string   `json:"format"`
+	Cmd         string   `json:"cmd"`
+	Args        []string `json:"args"`
 }
 type Database struct {
 	Name     string `json:"name"`
@@ -53,6 +54,7 @@ func StoreScripts(script Script) {
 
 	RedisClient.Cmd("sAdd", "sheriff:scripts", script.Name)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "format", script.Format)
+	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "description", script.Description)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "directory", script.Directory)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "cmd", script.Cmd)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "args", strings.Join(script.Args, " "))
