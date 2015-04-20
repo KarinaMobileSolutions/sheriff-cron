@@ -45,7 +45,12 @@ func ErrorHandler(err error) {
 	}
 }
 
-func StoreScripts(script Script, RedisClient *redis.Client) {
+func StoreScripts(script Script) {
+	RedisClient, err := redis.Dial("tcp", "127.0.0.1:6379")
+	ErrorHandler(err)
+
+	defer RedisClient.Close()
+
 	RedisClient.Cmd("sAdd", "sheriff:scripts", script.Name)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "format", script.Format)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "directory", script.Directory)
@@ -54,12 +59,6 @@ func StoreScripts(script Script, RedisClient *redis.Client) {
 }
 
 func main() {
-	fmt.Println("Connecting to redis server...")
-	RedisClient, err := redis.Dial("tcp", "127.0.0.1:6379")
-	ErrorHandler(err)
-
-	defer RedisClient.Close()
-
 	ParseScripts()
 	fmt.Println("Adding Scripts routines...")
 
@@ -68,11 +67,16 @@ func main() {
 	cr := cron.New()
 	for _, script := range config.Scripts {
 
-		StoreScripts(script, RedisClient)
+		StoreScripts(script)
 
 		wg.Add(1)
 		script := script
 		cr.AddFunc(script.Format, func() {
+
+			RedisClient, err := redis.Dial("tcp", "127.0.0.1:6379")
+			ErrorHandler(err)
+
+			defer RedisClient.Close()
 
 			cmd := exec.Command(script.Cmd, script.Args...)
 
