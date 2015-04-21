@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	conf "github.com/KarinaMobileSolutions/config"
 	"github.com/fzzy/radix/redis"
 	"github.com/robfig/cron"
 	"os"
@@ -13,8 +14,8 @@ import (
 )
 
 type Conf struct {
-	Scripts   []Script   `json:"scripts"`
-	Databases []Database `json:"dbs"`
+	Scripts []Script `json:"scripts"`
+	Redis   Database `json:"redis"`
 }
 
 type Script struct {
@@ -26,17 +27,15 @@ type Script struct {
 	Args        []string `json:"args"`
 }
 type Database struct {
-	Name     string `json:"name"`
 	Type     string `json:"type"`
 	Host     string `json:"host"`
-	Port     int    `json:"port"`
+	Port     int64  `json:"port"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 var (
-	config   Conf
-	rediscon Database
+	config Conf
 )
 
 func ErrorHandler(err error) {
@@ -47,7 +46,7 @@ func ErrorHandler(err error) {
 }
 
 func StoreScripts(script Script) {
-	RedisClient, err := redis.Dial("tcp", "127.0.0.1:6379")
+	RedisClient, err := redis.Dial(config.Redis.Type, config.Redis.Host+":"+strconv.FormatInt(config.Redis.Port, 10))
 	ErrorHandler(err)
 
 	defer RedisClient.Close()
@@ -61,7 +60,7 @@ func StoreScripts(script Script) {
 }
 
 func main() {
-	ParseScripts()
+	conf.Init(&config)
 	fmt.Println("Adding Scripts routines...")
 
 	var wg sync.WaitGroup
@@ -75,7 +74,7 @@ func main() {
 		script := script
 		cr.AddFunc(script.Format, func() {
 
-			RedisClient, err := redis.Dial("tcp", "127.0.0.1:6379")
+			RedisClient, err := redis.Dial(config.Redis.Type, config.Redis.Host+":"+strconv.FormatInt(config.Redis.Port, 10))
 			ErrorHandler(err)
 
 			defer RedisClient.Close()

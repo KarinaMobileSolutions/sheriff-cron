@@ -1,0 +1,21 @@
+{
+  "scripts" : [
+      {
+        "name": "Ping",
+        "description": "Pinging test",
+        "directory": "/home/sasan/Works/Karina/",
+        "format": "*/5 * * * * *",
+        "cmd": "php5",
+        "args": [
+          "ping.php"
+        ]
+      }
+  ],
+  "redis": {
+    "type":"tcp",
+    "host":"127.0.0.1",
+    "port": 6379,
+    "username": null,
+    "password": null
+  }
+}
