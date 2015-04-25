@@ -8,7 +8,13 @@
         "cmd": "php5",
         "args": [
           "ping.php"
-        ]
+        ],
+        "status": {
+          "critical": 200,
+          "warning": 100,
+          "ok": 40
+        },
+        "status_sort": "desc"
       }
   ],
   "redis": {

@@ -25,13 +25,22 @@ type Script struct {
 	Format      string   `json:"format"`
 	Cmd         string   `json:"cmd"`
 	Args        []string `json:"args"`
+	Status      Status   `json:"status"`
+	StatusSort  string   `json:"status_sort"`
 }
+
 type Database struct {
 	Type     string `json:"type"`
 	Host     string `json:"host"`
 	Port     int64  `json:"port"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type Status struct {
+	Critical float64 `json:"critical"`
+	Warning  float64 `json:"warning"`
+	Ok       float64 `json:"ok"`
 }
 
 var (
@@ -57,6 +66,11 @@ func StoreScripts(script Script) {
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "directory", script.Directory)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "cmd", script.Cmd)
 	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "args", strings.Join(script.Args, " "))
+	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name, "status_sort", script.StatusSort)
+
+	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name+":status", "critical", script.Status.Critical)
+	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name+":status", "warning", script.Status.Warning)
+	RedisClient.Cmd("hSet", "sheriff:scripts:"+script.Name+":status", "ok", script.Status.Ok)
 }
 
 func main() {
